@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.todo.service.TodoSortByDate;
 import com.todo.service.TodoSortByName;
+import com.todo.service.TodoUtil;
 
 public class TodoList {
 	private List<TodoItem> list;
@@ -37,12 +38,14 @@ public class TodoList {
 	}
 
 	public void listAll() {
-		int count = 0;
+		int count = 0, serial = 1;
 		for(TodoItem myitem : list)
 			count++;
 		System.out.println("\n"+"[ List all items, total "+count+" item ]");
 		for (TodoItem item : list) {
-			System.out.println("[" + item.getCategory() + "]"+ " " +item.getTitle()+" - "+item.getDesc()+" - "+item.getDue_date()+" - "+item.getCurrent_date());
+			System.out.print(serial+". ");
+			TodoUtil.readItem(item);
+			serial++;
 		}
 	}
 	
@@ -55,6 +58,7 @@ public class TodoList {
 		
 		Collections.sort(list, new TodoSortByDate());
 	}
+	
 
 	public int indexOf(TodoItem t) {
 		return list.indexOf(t);

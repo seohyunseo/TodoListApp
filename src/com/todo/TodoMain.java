@@ -21,7 +21,7 @@ public class TodoMain {
 			isList = false;
 			String choice = sc.next();
 			String keyword = "";
-			if(choice.equals("find"))
+			if(choice.contains("find"))
 				keyword = sc.next();
 			
 			switch (choice) {
@@ -71,6 +71,20 @@ public class TodoMain {
 				
 			case "find":
 				TodoUtil.searchItem(l, keyword);
+				break;
+				
+			case "find_cate":
+				TodoUtil.searchItemCate(l, keyword);
+				break;
+			
+			case "ls_date_desc":
+				System.out.println("List sorted by date in reverse order");
+				l.sortByDate();
+				l.reverseList();
+				isList = true;
+				break;
+			case "ls_cate":
+				TodoUtil.listCategory(l);
 				break;
 			
 			default:

@@ -138,11 +138,46 @@ public class TodoUtil {
 		}
 	}
 	
+	public static void listCategory(TodoList l) {
+		HashSet<String> cate = new HashSet<String>();
+		int count = 0;
+		
+		for(TodoItem item : l.getList()) {
+			cate.add(item.getCategory());
+		}
+		Iterator iter = cate.iterator();	// Iterator »ç¿ë
+		while(iter.hasNext()) {
+			count++;
+		    System.out.print(iter.next());
+		    if(count == cate.size()) {
+		    	System.out.println();
+		    	break;
+		    }
+		    System.out.print(" / ");
+		    
+		}
+		System.out.println("Total "+count+" category exists");
+	}
+	
 	public static void searchItem(TodoList l, String keyword) {
 		int count = 0, serial = 1;
 		
 		for(TodoItem item : l.getList()) {
 			if(item.getTitle().contains(keyword) || item.getDesc().contains(keyword)) {
+				count++;
+				System.out.print(serial+". ");
+				readItem(item);
+			}
+			serial++;
+		}
+		System.out.println("Found total " + count + " items");
+	}
+	
+	public static void searchItemCate(TodoList l, String keyword) {
+		int count = 0, serial = 1;
+		
+		for(TodoItem item : l.getList()) {
+			if(item.getCategory().contains(keyword)) {
 				count++;
 				System.out.print(serial+". ");
 				readItem(item);
