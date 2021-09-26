@@ -20,6 +20,10 @@ public class TodoMain {
 			Menu.prompt();
 			isList = false;
 			String choice = sc.next();
+			String keyword = "";
+			if(choice.equals("find"))
+				keyword = sc.next();
+			
 			switch (choice) {
 
 			case "add":
@@ -39,20 +43,20 @@ public class TodoMain {
 				break;
 
 			case "ls_name_asc":
-				System.out.println("[ List sorted by name ]");
+				System.out.println("List sorted by name");
 				l.sortByName();
 				isList = true;
 				break;
 
 			case "ls_name_desc":
-				System.out.println("[ List sorted by name in reverse order ]");
+				System.out.println("List sorted by name in reverse order");
 				l.sortByName();
 				l.reverseList();
 				isList = true;
 				break;
 				
 			case "ls_date":
-				System.out.println("[ List sorted by date ]");
+				System.out.println("List sorted by date");
 				l.sortByDate();
 				isList = true;
 				break;
@@ -64,7 +68,11 @@ public class TodoMain {
 			case "help":
 				Menu.displaymenu();
 				break;
-
+				
+			case "find":
+				TodoUtil.searchItem(l, keyword);
+				break;
+			
 			default:
 				System.out.println("please enter one of the above mentioned command. (help : Display menu)");
 				break;

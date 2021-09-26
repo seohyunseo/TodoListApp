@@ -37,9 +37,12 @@ public class TodoList {
 	}
 
 	public void listAll() {
-		System.out.println("[ List all items ]");
-		for (TodoItem myitem : list) {
-			System.out.println("[" + myitem.getTitle() + "]"+ " " +myitem.getDesc()+" - "+myitem.getCurrent_date());
+		int count = 0;
+		for(TodoItem myitem : list)
+			count++;
+		System.out.println("\n"+"[ List all items, total "+count+" item ]");
+		for (TodoItem item : list) {
+			System.out.println("[" + item.getCategory() + "]"+ " " +item.getTitle()+" - "+item.getDesc()+" - "+item.getDue_date()+" - "+item.getCurrent_date());
 		}
 	}
 	

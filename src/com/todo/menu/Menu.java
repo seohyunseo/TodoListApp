@@ -7,6 +7,7 @@ public class Menu {
         System.out.println("add : Add a new item");
         System.out.println("del : Delete an existing item");
         System.out.println("edit : Update an item");
+        System.out.println("find : Search items with keyword");
         System.out.println("ls : List all items");
         System.out.println("ls_name_asc : sort the list by name");
         System.out.println("ls_name_desc : sort the list by name");

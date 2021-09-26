@@ -16,7 +16,7 @@ public class TodoUtil {
 	
 	public static void createItem(TodoList list) {
 		
-		String title, desc;
+		String title, cate, due, desc;
 		Scanner sc = new Scanner(System.in);
 		
 		System.out.println("\n"
@@ -29,27 +29,44 @@ public class TodoUtil {
 			return;
 		}
 		
+		System.out.print("category > ");
+		cate = sc.next();
+		
 		System.out.print("description > ");
 		sc.nextLine();
 		desc = sc.nextLine();
 		
-		TodoItem t = new TodoItem(title, desc,null);
+		System.out.print("due date > ");
+		due = sc.next();
+		
+		TodoItem t = new TodoItem(title, cate, desc,due,null);
 		list.addItem(t);
 	}
 
 	public static void deleteItem(TodoList l) {
 		
 		Scanner sc = new Scanner(System.in);
-		
+		int choice = 0, i = 1;
+		String yn;
 		System.out.println("\n"
 				+ "[ Delete an existing item ]");
-		System.out.print("title to delete > ");
-		String title = sc.next();
+		System.out.print("enter the number to delete > ");
+		choice = sc.nextInt();
 		for (TodoItem item : l.getList()) {
-			if (title.equals(item.getTitle())) {
-				l.deleteItem(item);
+			if (choice == i) {
+				System.out.print(i+". ");
+				readItem(item);
+				System.out.print("Do you want to delete an item above? (y/n) > ");
+				yn = sc.next();
+				if (yn.equals("y")) {
+					l.deleteItem(item);
+					System.out.println("Item deleted");
+				} else {
+					break;
+				}
 				break;
 			}
+			i++;
 		}
 	}
 
@@ -57,14 +74,24 @@ public class TodoUtil {
 	public static void updateItem(TodoList l) {
 		
 		Scanner sc = new Scanner(System.in);
+		int choice = 0, i = 1;
 		
 		System.out.println("\n"
 				+ "[ Update an item ]");
-		System.out.print("title to update > ");
-		String title = sc.next().trim();
-		if (!l.isDuplicate(title)) {
-			System.out.println("title doesn't exist");
-			return;
+		System.out.print("enter the number to update > ");
+		choice = sc.nextInt();
+//		if (!l.isDuplicate(title)) {
+//			System.out.println("title doesn't exist");
+//			return;
+//		}
+		
+		for(TodoItem item : l.getList()) {
+			if(choice == i) {
+				System.out.print(i+". ");
+				readItem(item);
+				break;
+			}
+			i++;
 		}
 
 		System.out.print("new title > ");
@@ -74,26 +101,55 @@ public class TodoUtil {
 			return;
 		}
 		
+		System.out.print("category > ");
+		String new_cate = sc.next();
+		
 		System.out.print("new description > ");
 		String new_description;
 		sc.nextLine().trim();
 		new_description = sc.nextLine().trim();
+		
+		System.out.print("new due date > ");
+		String new_due = sc.next();
 		for (TodoItem item : l.getList()) {
-			if (item.getTitle().equals(title)) {
+			if (choice == i) {
 				l.deleteItem(item);
-				TodoItem t = new TodoItem(new_title, new_description,null);
+				TodoItem t = new TodoItem(new_title, new_cate, new_description,new_due,null);
 				l.addItem(t);
 				System.out.println("item updated");
+				break;
 			}
 		}
-
 	}
-
+	
+	public static void readItem(TodoItem item) {
+		System.out.println("[" + item.getCategory() + "]"+ " " +item.getTitle()+" - "+item.getDesc()+" - "+item.getDue_date()+" - "+item.getCurrent_date());
+	}
+	
 	public static void listAll(TodoList l) {
-		System.out.println("\n"+"[ List all items ]");
+		int count = 0, serial = 1;
+		for(TodoItem myitem : l.getList())
+			count++;
+		System.out.println("\n"+"[ List all items, total "+count+" item ]");
 		for (TodoItem item : l.getList()) {
-			System.out.println("[" + item.getTitle() + "]"+ " " +item.getDesc()+" - "+item.getCurrent_date());
+			System.out.print(serial+". ");
+			readItem(item);
+			serial++;
 		}
+	}
+	
+	public static void searchItem(TodoList l, String keyword) {
+		int count = 0, serial = 1;
+		
+		for(TodoItem item : l.getList()) {
+			if(item.getTitle().contains(keyword) || item.getDesc().contains(keyword)) {
+				count++;
+				System.out.print(serial+". ");
+				readItem(item);
+			}
+			serial++;
+		}
+		System.out.println("Found total " + count + " items");
 	}
 	
 	public static void saveList(TodoList l, String filename) {
@@ -115,10 +171,12 @@ public class TodoUtil {
 			int count = 0;
 			while((oneLine = br.readLine()) != null) {
 				StringTokenizer st = new StringTokenizer(oneLine, "##");
+				String cate = st.nextToken();
 				String title = st.nextToken();
 				String desc = st.nextToken();
+				String due = st.nextToken();
 				String current_date = st.nextToken();
-				TodoItem t = new TodoItem(title, desc, current_date);
+				TodoItem t = new TodoItem(title, cate, desc, due, current_date);
 				l.addItem(t);
 				count++;
 			}
