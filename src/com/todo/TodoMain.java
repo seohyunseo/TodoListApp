@@ -12,17 +12,13 @@ public class TodoMain {
 	
 		Scanner sc = new Scanner(System.in);
 		TodoList l = new TodoList();
-		boolean isList = false;
+		l.importData("todolist.txt");
 		boolean quit = false;
-		TodoUtil.loadList(l, "todolist.txt");
+//		TodoUtil.loadList(l, "todolist.txt");
 		Menu.displaymenu();
 		do {
 			Menu.prompt();
-			isList = false;
 			String choice = sc.next();
-			String keyword = "";
-			if(choice.contains("find"))
-				keyword = sc.next();
 			
 			switch (choice) {
 
@@ -39,28 +35,29 @@ public class TodoMain {
 				break;
 				
 			case "ls":
-				TodoUtil.listAll(l);
+				TodoUtil.listAll(l, null, 0,0);
 				break;
 
-			case "ls_name_asc":
+			case "ls_name":
 				System.out.println("List sorted by name");
-				l.sortByName();
-				isList = true;
+				TodoUtil.listAll(l, "title", 1,0);
 				break;
 
 			case "ls_name_desc":
 				System.out.println("List sorted by name in reverse order");
-				l.sortByName();
-				l.reverseList();
-				isList = true;
+				TodoUtil.listAll(l, "title", 0,0);
 				break;
 				
 			case "ls_date":
 				System.out.println("List sorted by date");
-				l.sortByDate();
-				isList = true;
+				TodoUtil.listAll(l, "due_date", 1,0);
 				break;
-
+				
+			case "ls_date_desc":
+				System.out.println("List sorted by date in reverse order");
+				TodoUtil.listAll(l, "due_date", 0,0);
+				break;
+				
 			case "exit":
 				quit = true;
 				break;
@@ -70,29 +67,32 @@ public class TodoMain {
 				break;
 				
 			case "find":
+				String keyword = sc.nextLine().trim();
 				TodoUtil.searchItem(l, keyword);
 				break;
 				
 			case "find_cate":
-				TodoUtil.searchItemCate(l, keyword);
+				String cate = sc.nextLine().trim();
+				TodoUtil.searchItemCate(l, cate);
 				break;
 			
-			case "ls_date_desc":
-				System.out.println("List sorted by date in reverse order");
-				l.sortByDate();
-				l.reverseList();
-				isList = true;
-				break;
 			case "ls_cate":
 				TodoUtil.listCategory(l);
+				break;
+				
+			case "comp":
+				int com = sc.nextInt();
+				TodoUtil.completeItem(l, com);
+				break;
+				
+			case "ls_comp":
+				TodoUtil.listAll(l, null, 0,1);
 				break;
 			
 			default:
 				System.out.println("please enter one of the above mentioned command. (help : Display menu)");
 				break;
 			}
-			
-			if(isList) l.listAll();
 		} while (!quit);
 		TodoUtil.saveList(l, "todolist.txt");
 	}

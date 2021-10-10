@@ -39,34 +39,35 @@ public class TodoUtil {
 		System.out.print("due date > ");
 		due = sc.next();
 		
-		TodoItem t = new TodoItem(title, cate, desc,due,null);
-		list.addItem(t);
+		TodoItem t = new TodoItem(title, cate, desc,due,null, 0);
+		if(list.addItem(t)>0)
+			System.out.println("item added in Database");
 	}
 
 	public static void deleteItem(TodoList l) {
 		
 		Scanner sc = new Scanner(System.in);
-		int choice = 0, i = 1;
+		int index = 0;
 		String yn;
 		System.out.println("\n"
 				+ "[ Delete an existing item ]");
 		System.out.print("enter the number to delete > ");
-		choice = sc.nextInt();
-		for (TodoItem item : l.getList()) {
-			if (choice == i) {
-				System.out.print(i+". ");
-				readItem(item);
-				System.out.print("Do you want to delete an item above? (y/n) > ");
-				yn = sc.next();
-				if (yn.equals("y")) {
-					l.deleteItem(item);
-					System.out.println("Item deleted");
-				} else {
-					break;
-				}
-				break;
+		index = sc.nextInt();
+
+		if(l.deleteItem(index) > 0) 
+			System.out.println("item deleted in database");
+	}
+	
+	public static void completeItem(TodoList l, int comp) {
+		
+		if(l.completeItem(comp) > 0) {
+			System.out.println("item completed");
+			for(TodoItem item : l.getList(null,0)) {
+				if(item.getId() == comp)
+					item.setIs_completed(1);
 			}
-			i++;
+		} else {
+			System.out.println("no item completed");
 		}
 	}
 
@@ -74,25 +75,13 @@ public class TodoUtil {
 	public static void updateItem(TodoList l) {
 		
 		Scanner sc = new Scanner(System.in);
-		int choice = 0, i = 1;
+		int index = 0, i = 1;
 		
 		System.out.println("\n"
 				+ "[ Update an item ]");
 		System.out.print("enter the number to update > ");
-		choice = sc.nextInt();
-//		if (!l.isDuplicate(title)) {
-//			System.out.println("title doesn't exist");
-//			return;
-//		}
-		
-		for(TodoItem item : l.getList()) {
-			if(choice == i) {
-				System.out.print(i+". ");
-				readItem(item);
-				break;
-			}
-			i++;
-		}
+		index = sc.nextInt();
+
 
 		System.out.print("new title > ");
 		String new_title = sc.next().trim();
@@ -111,78 +100,55 @@ public class TodoUtil {
 		
 		System.out.print("new due date > ");
 		String new_due = sc.next();
-		for (TodoItem item : l.getList()) {
-			if (choice == i) {
-				l.deleteItem(item);
-				TodoItem t = new TodoItem(new_title, new_cate, new_description,new_due,null);
-				l.addItem(t);
-				System.out.println("item updated");
-				break;
+		
+		
+		TodoItem t = new TodoItem(new_title, new_cate, new_description,new_due,null,0);
+		t.setId(index);
+		if(l.updateItem(t) > 0)
+			System.out.println("item updated in database");
+	}
+	
+	public static void listAll(TodoList l, String orderby, int ordering, int comp) {
+		if(comp == 0)
+			System.out.println("\n"+"[ List all items, total "+l.getCount(comp)+" item ]");
+		else
+			System.out.println("total "+l.getCount(comp)+" items have been completed");
+		if(orderby == null) {
+			for(TodoItem item : l.getList(null,comp)) {
+					System.out.println(item.toString());
 			}
-		}
-	}
-	
-	public static void readItem(TodoItem item) {
-		System.out.println("[" + item.getCategory() + "]"+ " " +item.getTitle()+" - "+item.getDesc()+" - "+item.getDue_date()+" - "+item.getCurrent_date());
-	}
-	
-	public static void listAll(TodoList l) {
-		int count = 0, serial = 1;
-		for(TodoItem myitem : l.getList())
-			count++;
-		System.out.println("\n"+"[ List all items, total "+count+" item ]");
-		for (TodoItem item : l.getList()) {
-			System.out.print(serial+". ");
-			readItem(item);
-			serial++;
+		} else {
+			for(TodoItem item : l.getOrderedList(orderby, ordering)) {
+					System.out.println(item.toString());
+			}
 		}
 	}
 	
 	public static void listCategory(TodoList l) {
-		HashSet<String> cate = new HashSet<String>();
 		int count = 0;
-		
-		for(TodoItem item : l.getList()) {
-			cate.add(item.getCategory());
-		}
-		Iterator iter = cate.iterator();	// Iterator »ç¿ë
-		while(iter.hasNext()) {
+		for(String item : l.getCategories()) {
+			System.out.print(item+" ");
 			count++;
-		    System.out.print(iter.next());
-		    if(count == cate.size()) {
-		    	System.out.println();
-		    	break;
-		    }
-		    System.out.print(" / ");
-		    
 		}
-		System.out.println("Total "+count+" category exists");
+		System.out.println("\n"+"Total "+count+" category exists");
 	}
 	
 	public static void searchItem(TodoList l, String keyword) {
-		int count = 0, serial = 1;
+		int count = 0;
 		
-		for(TodoItem item : l.getList()) {
-			if(item.getTitle().contains(keyword) || item.getDesc().contains(keyword)) {
+		for(TodoItem item : l.getList(keyword,0)) {
+				System.out.println(item.toString());
 				count++;
-				System.out.print(serial+". ");
-				readItem(item);
-			}
-			serial++;
 		}
 		System.out.println("Found total " + count + " items");
 	}
 	
-	public static void searchItemCate(TodoList l, String keyword) {
-		int count = 0, serial = 1;
+	public static void searchItemCate(TodoList l, String cate) {
+		int count = 0;
 		
-		for(TodoItem item : l.getList()) {
-			if(item.getCategory().contains(keyword)) {
-				count++;
-				System.out.print(serial+". ");
-				readItem(item);
-			}
-			serial++;
+		for(TodoItem item : l.getListCategory(cate)) {
+			System.out.println(item.toString());
+			count++;
 		}
 		System.out.println("Found total " + count + " items");
 	}
@@ -190,7 +156,7 @@ public class TodoUtil {
 	public static void saveList(TodoList l, String filename) {
 		try {
 			Writer w = new FileWriter(filename);
-			for(TodoItem item : l.getList()) 
+			for(TodoItem item : l.getList(null,0)) 
 				w.write(item.toSaveString());
 			w.close();
 		} catch (IOException e) {
@@ -211,7 +177,7 @@ public class TodoUtil {
 				String desc = st.nextToken();
 				String due = st.nextToken();
 				String current_date = st.nextToken();
-				TodoItem t = new TodoItem(title, cate, desc, due, current_date);
+				TodoItem t = new TodoItem(title, cate, desc, due, current_date,0);
 				l.addItem(t);
 				count++;
 			}
