@@ -17,6 +17,7 @@ public class Menu {
         System.out.println("ls_date_desc : sort the list by date in reverse order");
         System.out.println("ls_cate : List all categories");
         System.out.println("ls_comp : List completed items");
+        System.out.println("ls_routine : *List Weekly Schedule");
         System.out.println("exit : exit the program");
         
     }

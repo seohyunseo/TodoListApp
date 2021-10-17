@@ -11,8 +11,10 @@ public class TodoItem {
     private String category;
     private String due_date;
     private int is_completed;
+    private int priority;
+    private String routine;
 
-    public TodoItem(String title, String category, String desc, String due_date, String date, int is_completed){
+    public TodoItem(String title, String category, String desc, String due_date, String date, int is_completed, int priority, String routine){
         this.title=title;
         this.desc=desc;
         if(date == null) {
@@ -24,7 +26,29 @@ public class TodoItem {
         this.category=category;
         this.due_date=due_date;
         this.is_completed=is_completed;
+        this.priority=priority;
+        this.routine=routine;
     }
+
+
+	public int getPriority() {
+		return priority;
+	}
+
+
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+
+
+	public String getRoutine() {
+		return routine;
+	}
+
+
+	public void setRoutine(String routine) {
+		this.routine = routine;
+	}
 
 
 	public int getIs_completed() {
@@ -90,10 +114,17 @@ public class TodoItem {
 
 	@Override
 	public String toString() {
-		if(this.is_completed == 0)
-			return id+" [" + category + "]"+ " " +title+" - "+desc+" - "+due_date+" - "+current_date;
-		else
-			return id+" [" + category + "]"+ " " +title+"[v]"+" - "+desc+" - "+due_date+" - "+current_date;
+		if(this.is_completed == 0) {
+			if(this.routine == null)
+				return id+" [" + category + "]"+ " " +title+" - "+desc+" - "+due_date+" - "+current_date+" ["+priority+"]";
+			else
+				return id+" [" + category + "]"+ " " +title+" - "+desc+" - "+due_date+" - "+current_date+" ["+priority+"] routine: "+routine;
+		} else {
+			if(this.routine == null)
+				return id+" [" + category + "]"+ " " +title+"[v]"+" - "+desc+" - "+due_date+" - "+current_date+" ["+priority+"]";
+			else
+				return id+" [" + category + "]"+ " " +title+"[v]"+" - "+desc+" - "+due_date+" - "+current_date+" ["+priority+"] routine: "+routine;
+		}
 	}
     
 }

@@ -12,7 +12,7 @@ public class TodoMain {
 	
 		Scanner sc = new Scanner(System.in);
 		TodoList l = new TodoList();
-		l.importData("todolist.txt");
+//		l.importData("todolist.txt");
 		boolean quit = false;
 //		TodoUtil.loadList(l, "todolist.txt");
 		Menu.displaymenu();
@@ -87,6 +87,10 @@ public class TodoMain {
 				
 			case "ls_comp":
 				TodoUtil.listAll(l, null, 0,1);
+				break;
+			
+			case "ls_routine":
+				TodoUtil.listRoutine(l);
 				break;
 			
 			default:

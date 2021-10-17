@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Writer;
+import java.sql.Statement;
 import java.io.Reader;
 import java.util.*;
 
@@ -15,8 +16,8 @@ import com.todo.dao.TodoList;
 public class TodoUtil {
 	
 	public static void createItem(TodoList list) {
-		
-		String title, cate, due, desc;
+		String title, cate, due, desc, routine = null;
+		int priority = 0, has_routine = 0;
 		Scanner sc = new Scanner(System.in);
 		
 		System.out.println("\n"
@@ -32,6 +33,7 @@ public class TodoUtil {
 		System.out.print("category > ");
 		cate = sc.next();
 		
+		
 		System.out.print("description > ");
 		sc.nextLine();
 		desc = sc.nextLine();
@@ -39,7 +41,18 @@ public class TodoUtil {
 		System.out.print("due date > ");
 		due = sc.next();
 		
-		TodoItem t = new TodoItem(title, cate, desc,due,null, 0);
+		System.out.print("priority (1~3) > ");
+		priority = sc.nextInt();
+		
+		System.out.print("has routine? (1/0) > ");
+		has_routine = sc.nextInt();
+		
+		if(has_routine == 1) {
+			System.out.print("routine (MON~SUN) > ");
+			routine = sc.next();
+		}
+
+		TodoItem t = new TodoItem(title, cate, desc,due,null, 0, priority, routine);
 		if(list.addItem(t)>0)
 			System.out.println("item added in Database");
 	}
@@ -49,25 +62,43 @@ public class TodoUtil {
 		Scanner sc = new Scanner(System.in);
 		int index = 0;
 		String yn;
+		System.out.print("How many items to delete > ");
+		int i = sc.nextInt();
+		int[] del_list = new int[i]; 
 		System.out.println("\n"
 				+ "[ Delete an existing item ]");
-		System.out.print("enter the number to delete > ");
-		index = sc.nextInt();
-
-		if(l.deleteItem(index) > 0) 
-			System.out.println("item deleted in database");
+		System.out.print("enter the numbers to delete > ");
+		for(int j = 0; j < i; j++) {
+			del_list[j] = sc.nextInt();
+		}
+		
+		for(int j = 0; j < i; j++) {
+			if(l.deleteItem(del_list[j]) > 0) 
+				System.out.println((j+1)+"item deleted in database");
+		}
+		
 	}
 	
 	public static void completeItem(TodoList l, int comp) {
+		Scanner sc = new Scanner(System.in);
 		
-		if(l.completeItem(comp) > 0) {
-			System.out.println("item completed");
-			for(TodoItem item : l.getList(null,0)) {
-				if(item.getId() == comp)
-					item.setIs_completed(1);
+		int[] comp_list = new int [comp];
+		System.out.println("you want to complete "+comp+" times");
+		System.out.print("enter the numbers to complete > ");
+		for(int i = 0; i < comp; i++) {
+			comp_list[i] = sc.nextInt();
+		}
+		
+		for(int i = 0; i < comp; i++) {
+			if(l.completeItem(comp_list[i]) > 0) {
+				System.out.println((i+1)+" item completed");
+				for(TodoItem item : l.getList(null,0)) {
+					if(item.getId() == comp)
+						item.setIs_completed(1);
+				}
+			} else {
+				System.out.println("no item completed");
 			}
-		} else {
-			System.out.println("no item completed");
 		}
 	}
 
@@ -75,7 +106,8 @@ public class TodoUtil {
 	public static void updateItem(TodoList l) {
 		
 		Scanner sc = new Scanner(System.in);
-		int index = 0, i = 1;
+		int index = 0, i = 1, new_priority = 0, has_routine = 0;
+		String new_routine = null;
 		
 		System.out.println("\n"
 				+ "[ Update an item ]");
@@ -101,8 +133,19 @@ public class TodoUtil {
 		System.out.print("new due date > ");
 		String new_due = sc.next();
 		
+		System.out.print("new priority (1~3) > ");
+		new_priority = sc.nextInt();
 		
-		TodoItem t = new TodoItem(new_title, new_cate, new_description,new_due,null,0);
+		System.out.print("has routine? (1/0) > ");
+		has_routine = sc.nextInt();
+		
+		if(has_routine == 1) {
+			System.out.print("new routine (MON~SUN) > ");
+			new_routine = sc.next();
+		}
+
+		
+		TodoItem t = new TodoItem(new_title, new_cate, new_description,new_due,null,0,new_priority, new_routine );
 		t.setId(index);
 		if(l.updateItem(t) > 0)
 			System.out.println("item updated in database");
@@ -131,6 +174,21 @@ public class TodoUtil {
 			count++;
 		}
 		System.out.println("\n"+"Total "+count+" category exists");
+	}
+	
+	public static void listRoutine(TodoList l) {
+		String[] routine_day = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+		System.out.println("< Weekly Schedule >");
+		for(int i = 0; i < 7; i++) {
+			System.out.println("\n--------------------------------["+routine_day[i]+"]--------------------------------");
+			int count = 0;
+			for(TodoItem item : l.getListRoutine(routine_day[i])) {
+				System.out.println(item.toString());
+				count++;
+			}
+			System.out.println("\n"+"Total "+count+" category exists for "+routine_day[i]);
+		}
+		
 	}
 	
 	public static void searchItem(TodoList l, String keyword) {
@@ -177,7 +235,11 @@ public class TodoUtil {
 				String desc = st.nextToken();
 				String due = st.nextToken();
 				String current_date = st.nextToken();
-				TodoItem t = new TodoItem(title, cate, desc, due, current_date,0);
+				String priority = st.nextToken();
+				String routine = st.nextToken();
+				
+				int p = Integer.parseInt(priority);
+				TodoItem t = new TodoItem(title, cate, desc, due, current_date,0,p, routine);
 				l.addItem(t);
 				count++;
 			}

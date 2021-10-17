@@ -19,24 +19,47 @@ import com.todo.service.TodoUtil;
 public class TodoList {
 	private List<TodoItem> list;
 	Connection conn;
-
+	
 	public TodoList() {
 		this.list = new ArrayList<TodoItem>();
 		this.conn = DbConnect.getConnection();
 	}
-
-	public int addItem(TodoItem t) {
-		String sql = "insert into list (title, description, category, current_date, due_date)" + " values (?,?,?,?,?);";
+	
+	public int getCateId(TodoItem t) {
+		int cate_id = 0;
 		PreparedStatement pstmt;
-		int count = 0;
+		String sql = "SELECT * FROM category WHERE name=?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, t.getCategory());
+			ResultSet rs = pstmt.executeQuery();
+			while(rs.next())
+				cate_id = rs.getInt("id");
+			pstmt.close();
+		} catch (SQLException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
+		return cate_id;
+	}
+	public int addItem(TodoItem t) {
+//		int cate_id = 1;
+		hasCategory(t.getCategory());
+		int cate_id = getCateId(t);
+		PreparedStatement pstmt;
+		
+		String sql = "insert into list (title, description, category, current_date, due_date, priority, routine)" + " values (?,?,?,?,?,?,?);";
+		int count = 0;
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, t.getTitle());
 			pstmt.setString(2, t.getDesc());
-			pstmt.setString(3, t.getCategory());
+			pstmt.setInt(3, cate_id);
 			pstmt.setString(4, t.getCurrent_date());
 			pstmt.setString(5, t.getDue_date());
+			pstmt.setInt(6, t.getPriority());
+			pstmt.setString(7, t.getRoutine());
 			count = pstmt.executeUpdate();
 			pstmt.close();
 		} catch (SQLException e) {
@@ -65,18 +88,21 @@ public class TodoList {
 	}
 
 	public int updateItem(TodoItem t) {
-
-		String sql = "update list set title=?, description=?, category=?, current_date=?, due_date=?" + " where id = ?;";
+		hasCategory(t.getCategory());
+		String sql = "update list set title=?, description=?, category=?, current_date=?, due_date=?, priority=?, routine=?" + " where id = ?;";
 		PreparedStatement pstmt;
 		int  count = 0;
+		int cate_id = getCateId(t);
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, t.getTitle());
 			pstmt.setString(2, t.getDesc());
-			pstmt.setString(3, t.getCategory());
+			pstmt.setInt(3, cate_id);
 			pstmt.setString(4, t.getCurrent_date());
 			pstmt.setString(5, t.getDue_date());
-			pstmt.setInt(6, t.getId());
+			pstmt.setInt(6, t.getPriority());
+			pstmt.setString(7, t.getRoutine());
+			pstmt.setInt(8, t.getId());
 			count = pstmt.executeUpdate();
 			pstmt.close();
 			
@@ -91,12 +117,45 @@ public class TodoList {
 		Statement stmt;
 		try {
 			stmt = conn.createStatement();
-			String sql = "SELECT DISTINCT category FROM list;";
+			String sql = "SELECT DISTINCT name FROM category;";
 			ResultSet rs = stmt.executeQuery(sql);
 			while(rs.next()) {
-				String cate = rs.getString("category");
+				String cate = rs.getString("name");
 				list.add(cate);
 			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return list;
+	}
+	
+	public ArrayList<TodoItem> getListRoutine(String day) {
+		ArrayList<TodoItem> list = new ArrayList<TodoItem>();
+		PreparedStatement pstmt;
+		try {
+				String sql = "SELECT * FROM list INNER JOIN category ON list.category = category.id WHERE routine = ?;";
+				
+				pstmt = conn.prepareStatement(sql);
+				pstmt.setString(1, day);
+				ResultSet rs = pstmt.executeQuery();
+				while(rs.next()) {
+					int id = rs.getInt("id");
+					String title = rs.getString("title");
+					String desc = rs.getString("description");
+					String category = rs.getString("name");
+					String current_date = rs.getString("current_date");
+					String due_date = rs.getString("due_date");
+					int comp = rs.getInt("is_completed");
+					int priority = rs.getInt("priority");
+					String routine = rs.getString("routine");
+					TodoItem t = new TodoItem(title, category,desc,  due_date, current_date, comp, priority, routine);
+					t.setId(id);
+					t.setCurrent_date(current_date);
+					list.add(t);
+				}
+				pstmt.close();
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -107,7 +166,7 @@ public class TodoList {
 	public ArrayList<TodoItem> getListCategory(String keyword) {
 		ArrayList<TodoItem> list = new ArrayList<TodoItem>();
 		PreparedStatement pstmt;
-		String sql = "SELECT * FROM list WHERE category = ?;";
+		String sql = "SELECT * FROM list INNER JOIN category ON list.category = category.id WHERE name = ?;";
 		try {
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, keyword);
@@ -116,11 +175,13 @@ public class TodoList {
 				int id = rs.getInt("id");
 				String title = rs.getString("title");
 				String desc = rs.getString("description");
-				String category = rs.getString("category");
+				String category = rs.getString("name");
 				String current_date = rs.getString("current_date");
 				String due_date = rs.getString("due_date");
 				int comp = rs.getInt("is_completed");
-				TodoItem t = new TodoItem(title, category,desc,  due_date, current_date, comp);
+				int priority = rs.getInt("priority");
+				String routine = rs.getString("routine");
+				TodoItem t = new TodoItem(title, category,desc,  due_date, current_date, comp, priority, routine);
 				t.setId(id);
 				t.setCurrent_date(current_date);
 				list.add(t);
@@ -138,7 +199,7 @@ public class TodoList {
 		Statement stmt;
 		try {
 			stmt = conn.createStatement();
-			String sql = "SELECT * FROM list ORDER BY "+orderby;
+			String sql = "SELECT * FROM list INNER JOIN category ON list.category = category.id ORDER BY "+orderby;
 			if(ordering == 0)
 				sql += " desc";
 			ResultSet rs = stmt.executeQuery(sql);
@@ -146,11 +207,13 @@ public class TodoList {
 				int id = rs.getInt("id");
 				String title = rs.getString("title");
 				String desc = rs.getString("description");
-				String category = rs.getString("category");
+				String category = rs.getString("name");
 				String current_date = rs.getString("current_date");
 				String due_date = rs.getString("due_date");
 				int comp = rs.getInt("is_completed");
-				TodoItem t = new TodoItem(title, category,desc,  due_date, current_date,comp);
+				int priority = rs.getInt("priority");
+				String routine = rs.getString("routine");
+				TodoItem t = new TodoItem(title, category,desc,  due_date, current_date, comp, priority, routine);
 				t.setId(id);
 				t.setCurrent_date(current_date);
 				list.add(t);
@@ -173,15 +236,15 @@ public class TodoList {
 		try {
 			stmt = conn.createStatement();
 			if(keyword == null) {
-				sql = "SELECT * FROM list;";
+				sql = "SELECT * FROM list INNER JOIN category ON list.category = category.id;";
 				rs = stmt.executeQuery(sql);
 				if(is_comp == 1) {
-					sql = "SELECT * FROM list WHERE is_completed="+is_comp;
+					sql = "SELECT * FROM list INNER JOIN category ON list.category = category.id WHERE is_completed="+is_comp;
 					rs = stmt.executeQuery(sql);
 				}
 			} else {
 				keyword = "%"+keyword+"%";
-				sql = "SELECT * FROM list WHERE title like ? or description like ?;";
+				sql = "SELECT * FROM list INNER JOIN category ON list.category = category.id WHERE title like ? or description like ?;";
 				pstmt = conn.prepareStatement(sql);
 				pstmt.setString(1, keyword);
 				pstmt.setString(2, keyword);
@@ -192,11 +255,13 @@ public class TodoList {
 				int id = rs.getInt("id");
 				String title = rs.getString("title");
 				String desc = rs.getString("description");
-				String category = rs.getString("category");
+				String category = rs.getString("name");
 				String current_date = rs.getString("current_date");
 				String due_date = rs.getString("due_date");
 				int comp = rs.getInt("is_completed");
-				TodoItem t = new TodoItem(title, category,desc,  due_date, current_date,comp);
+				int priority = rs.getInt("priority");
+				String routine = rs.getString("routine");
+				TodoItem t = new TodoItem(title, category,desc,  due_date, current_date, comp, priority, routine);
 				t.setId(id);
 				t.setCurrent_date(current_date);
 				list.add(t);
@@ -234,8 +299,8 @@ public class TodoList {
 			e.printStackTrace();
 		}
 		return count;
-		
 	}
+	
 
 	public int completeItem(int comp) {
 		int count = 0;
@@ -267,11 +332,45 @@ public class TodoList {
 			cnt = rs.getInt("cnt");
 			if(cnt > 0)
 				return true;
+			pstmt.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	public void hasCategory(String cate) {
+		PreparedStatement pstmt;
+		int cnt = 0;
+		String sql = "SELECT COUNT(*) cnt FROM category WHERE name=?";
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, cate);
+			ResultSet rs = pstmt.executeQuery();
+			cnt = rs.getInt("cnt");
+			pstmt.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		addCategory(cate, cnt);
+		
+	}
+	public void addCategory(String cate, int cnt) {
+		PreparedStatement pstmt;
+		if(cnt == 0) {
+			String sql = "insert into category (name)"+" values (?);";
+			try {
+				pstmt = conn.prepareStatement(sql);
+				pstmt.setString(1, cate);
+				int count = pstmt.executeUpdate();
+				pstmt.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void importData(String filename) {
@@ -318,4 +417,5 @@ public class TodoList {
 		
 		
 	}
+	
 }
